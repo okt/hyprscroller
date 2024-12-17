@@ -117,6 +117,12 @@ public:
     Column *selection_get(const Row *row);
     bool selection_exists() const;
 
+    void setScale(float scale) {
+        m_fScale = scale;
+        recalculateWithScale();
+    }
+    float getScale() const { return m_fScale; }
+
 private:
     // Adjust all the windows in the column using 'window' as anchor
     void adjust_windows(ListNode<Window *> *win, const Vector2D &gap_x, double gap);
@@ -138,6 +144,8 @@ private:
     List<Window *> windows;
     std::string name;
     const Row *row;
+    float m_fScale = 1.0f;
+    Vector2D m_vOriginalSize;
 };
 
 

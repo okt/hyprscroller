@@ -554,7 +554,7 @@ void Column::adjust_windows(ListNode<Window *> *win, const Vector2D &gap_x, doub
         w->data()->move_to_pos(geom.x, p->data()->get_geom_y(gap) - w->data()->get_geom_h(), gap_x, gap0);
     }
     // 3. adjust positions of windows below
-    for (auto w = win->next(), p = win; w != nullptr; p = w, w = w->next()) {
+    for (auto w = win->next(), p = win; p != nullptr; p = w, w = w->next()) {
         auto gap0 = p == windows.first() ? 0.0 : gap;
         w->data()->move_to_pos(geom.x, p->data()->get_geom_y(gap0) + p->data()->get_geom_h(), gap_x, gap);
     }
@@ -618,4 +618,35 @@ Column *Column::selection_get(const Row *row)
         column = new Column(row, this, selection);
     }
     return column;
+}
+
+void Column::recalculateWithScale() {
+    if (m_fScale == 1.0f) {
+        recalculate_col_geometry(Vector2D(0,0), gap); 
+        return;
+    }
+
+    // Save original size if not saved
+    if (m_vOriginalSize.x == 0) {
+        m_vOriginalSize = Vector2D(geom.w, get_height().y);
+    }
+
+    // Scale the column width and height
+    const Box &max = row->get_max();
+    double scaledWidth = m_vOriginalSize.x * m_fScale;
+    double scaledHeight = m_vOriginalSize.y * m_fScale;
+
+    // Center in available space
+    double x = geom.x + (geom.w - scaledWidth) / 2;
+    double y = max.y + (max.h - scaledHeight) / 2;
+
+    // Apply scaled geometry
+    geom.w = scaledWidth;
+    geom.vy = y;
+    
+    // Scale all windows in the column
+    for (auto win = windows.first(); win != nullptr; win = win->next()) {
+        Window* window = win->data();
+        window->scale(Vector2D(0,0), Vector2D(x,y), m_fScale, gap, gap);
+    }
 }

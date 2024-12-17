@@ -318,13 +318,20 @@ void Row::align_column(Direction dir)
     recalculate_row_geometry();
 }
 
-void Row::pin()
+void Row::pin(float scale)
 {
     if (pinned != nullptr) {
+        // Unpinning - restore original scale
+        pinned->data()->setScale(1.0f);
         pinned = nullptr;
     } else {
+        // Pinning with scale
         pinned = active;
+        pinned->data()->setScale(scale);
     }
+
+    reorder = Reorder::Auto;
+    recalculate_row_geometry();
 }
 
 void Row::selection_toggle()
@@ -1182,4 +1189,12 @@ void Row::adjust_overview_columns()
         auto gap1 = col == columns.last() ? 0.0 : gap;
         col->data()->recalculate_col_geometry_overview(Vector2D(gap0, gap1), gap);
     }
+}
+
+void ScrollerLayout::pin(WORKSPACEID workspace, float scale = 1.0f) {
+    auto s = getRowForWorkspace(workspace);
+    if (s == nullptr) {
+        return;
+    }
+    s->pin(scale); 
 }
